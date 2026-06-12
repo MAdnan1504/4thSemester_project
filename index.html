@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Arial;
+}
+
+body{
+    background:#f4f6f9;
+}
+
+/* NAV */
+nav{
+    background:#2c3e50;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    padding:15px 20px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin:0 10px;
+    font-weight:500;
+}
+
+nav a:hover{
+    color:#1abc9c;
+}
+
+/* SECTIONS */
+section{
+    display:none;
+    padding:20px;
+}
+
+.active{
+    display:block;
+}
+
+/* HERO */
+.hero{
+    text-align:center;
+    padding:80px 20px;
+    background:linear-gradient(135deg,#3498db,#2c3e50);
+    color:white;
+    border-radius:10px;
+    margin:20px;
+}
+
+.hero h1{
+    font-size:40px;
+}
+
+.btn{
+    margin-top:15px;
+    padding:10px 20px;
+    border:none;
+    background:white;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+}
+
+/* CARD */
+.card{
+    background:white;
+    padding:15px;
+    text-align:center;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.icon{
+    font-size:40px;
+    margin:10px 0;
+}
+
+button{
+    background:#27ae60;
+    color:white;
+    border:none;
+    padding:8px;
+    width:100%;
+    margin-top:10px;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+button:hover{
+    background:#219150;
+}
+
+/* SEARCH */
+input{
+    padding:10px;
+    width:100%;
+    margin-bottom:15px;
+    border-radius:5px;
+    border:1px solid #ccc;
+}
+
+/* CART */
+.cart-item{
+    background:white;
+    padding:10px;
+    margin:10px 0;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+}
+
+/* TOTAL */
+.total{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav>
+    <h2>🛍️ Smart Shop</h2>
+    <div>
+        <a onclick="showPage('home')">Home</a>
+        <a onclick="showPage('shop')">Shop</a>
+        <a onclick="showPage('cart')">Cart 🛒 (<span id="count">0</span>)</a>
+    </div>
+</nav>
+
+<!-- HOME -->
+<section id="home" class="active">
+    <div class="hero">
+        <h1>Modern Shopping Experience</h1>
+        <p>Fast • Simple • Professional</p>
+        <button class="btn" onclick="showPage('shop')">Start Shopping</button>
+    </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop">
+    <h2>🛍️ Products</h2>
+    <input type="text" id="search" placeholder="Search products..." onkeyup="filterProducts()">
+    <div class="grid" id="productList"></div>
+</section>
+
+<!-- CART -->
+<section id="cart">
+    <h2>🧾 Your Cart</h2>
+    <div id="cartList"></div>
+    <div class="total">Total: $<span id="total">0</span></div>
+</section>
+
+<script>
+// PRODUCTS
+const products = [
+    {id:1,name:"Headphones",price:50,icon:"🎧"},
+    {id:2,name:"Shoes",price:80,icon:"👟"},
+    {id:3,name:"Watch",price:120,icon:"⌚"},
+    {id:4,name:"Phone",price:300,icon:"📱"},
+    {id:5,name:"Laptop",price:700,icon:"💻"},
+    {id:6,name:"Bag",price:40,icon:"🎒"},
+    {id:7,name:"Camera",price:500,icon:"📷"}
+];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+// NAVIGATION
+function showPage(page){
+    document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(page).classList.add("active");
+
+    if(page === "shop") renderProducts(products);
+    if(page === "cart") renderCart();
+}
+
+// RENDER PRODUCTS
+function renderProducts(list){
+    let html = "";
+    list.forEach(p=>{
+        html += `
+        <div class="card">
+            <div class="icon">${p.icon}</div>
+            <h3>${p.name}</h3>
+            <p>$${p.price}</p>
+            <button onclick="addToCart(${p.id})">Add to Cart</button>
+        </div>`;
+    });
+
+    document.getElementById("productList").innerHTML = html;
+}
+
+// ADD TO CART
+function addToCart(id){
+    let item = products.find(p=>p.id===id);
+    cart.push(item);
+    saveCart();
+}
+
+// REMOVE
+function removeItem(i){
+    cart.splice(i,1);
+    saveCart();
+}
+
+// SAVE CART
+function saveCart(){
+    localStorage.setItem("cart",JSON.stringify(cart));
+    updateCount();
+}
+
+// UPDATE COUNT
+function updateCount(){
+    document.getElementById("count").innerText = cart.length;
+}
+updateCount();
+
+// CART RENDER
+function renderCart(){
+    let html = "";
+    let total = 0;
+
+    cart.forEach((c,i)=>{
+        total += c.price;
+        html += `
+        <div class="cart-item">
+            <span>${c.icon} ${c.name}</span>
+            <span>$${c.price} <button onclick="removeItem(${i})">X</button></span>
+        </div>`;
+    });
+
+    document.getElementById("cartList").innerHTML = html;
+    document.getElementById("total").innerText = total;
+}
+
+// SEARCH
+function filterProducts(){
+    let val = document.getElementById("search").value.toLowerCase();
+    let filtered = products.filter(p=>p.name.toLowerCase().includes(val));
+    renderProducts(filtered);
+}
+
+// INIT
+renderProducts(products);
+</script>
+
+</body>
+  </html>
